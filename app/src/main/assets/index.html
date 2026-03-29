@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Lista del Super</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .header {
+      background: #fff;
+      padding: 1.2rem 1.25rem 0.8rem;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .header h1 { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+    .save-indicator { font-size: 11px; color: #1D9E75; min-height: 14px; transition: opacity 0.5s; }
+    .progress-bar { height: 4px; background: #eee; border-radius: 99px; overflow: hidden; margin-top: 6px; }
+    .progress-fill { height: 100%; background: #1D9E75; border-radius: 99px; transition: width 0.4s; }
+    .progress-label { font-size: 12px; color: #888; margin-top: 4px; }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 100px;
+      z-index: 99;
+    }
+    .tab {
+      flex: 1; text-align: center; padding: 12px 4px;
+      font-size: 13px; cursor: pointer; color: #888;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s; font-weight: 500;
+    }
+    .tab.active { color: #1a1a1a; border-bottom: 2px solid #1a1a1a; }
+
+    /* CONTENT */
+    .content { flex: 1; padding: 1rem 1rem 5rem; overflow-y: auto; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ALERT BANNER */
+    .alert-banner {
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; font-weight: 500;
+      margin-bottom: 1rem; display: none;
+    }
+    .alert-over { background: #FCEBEB; color: #A32D2D; display: block; }
+    .alert-ok { background: #E1F5EE; color: #0F6E56; display: block; }
+    .alert-warn { background: #FAEEDA; color: #854F0B; display: block; }
+
+    /* BUDGET BAR */
+    .budget-bar-wrap {
+      background: #fff; border: 1px solid #eee;
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+    }
+    .budget-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .budget-label { font-size: 13px; color: #888; }
+    .budget-amounts { font-size: 13px; font-weight: 600; }
+    .bar-bg { height: 8px; background: #eee; border-radius: 99px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.3s; }
+    .budget-status { font-size: 12px; margin-top: 5px; text-align: right; }
+
+    /* CARDS */
+    .card {
+      background: #fff; border: 1px solid #eee;
+      border-radius: 12px; padding: 14px;
+      margin-bottom: 12px;
+    }
+    .card h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: #555; }
+    .card p { font-size: 12px; color: #888; margin-bottom: 10px; line-height: 1.5; }
+
+    /* FORM ELEMENTS */
+    input[type="text"], input[type="number"], select {
+      border: 1px solid #ddd; background: #fafafa;
+      border-radius: 8px; padding: 10px 12px;
+      font-size: 14px; color: #1a1a1a;
+      outline: none; width: 100%;
+      -webkit-appearance: none;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+      border-color: #1a1a1a; background: #fff;
+    }
+    .form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .form-row input, .form-row select { width: auto; }
+    .f2 { flex: 2; }
+    .f1 { flex: 1; }
+    .f08 { flex: 0.8; }
+
+    .btn-primary {
+      width: 100%; padding: 13px;
+      font-size: 15px; font-weight: 600;
+      border-radius: 10px;
+      background: #1a1a1a; color: #fff;
+      border: none; cursor: pointer;
+      margin-top: 10px;
+      active-scale: 0.98;
+    }
+    .btn-primary:active { opacity: 0.85; }
+
+    .btn-secondary {
+      padding: 10px 14px; font-size: 13px;
+      border-radius: 8px; background: transparent;
+      border: 1px solid #ddd; color: #555;
+      cursor: pointer;
+    }
+    .btn-danger {
+      width: 100%; padding: 11px;
+      font-size: 13px; border-radius: 10px;
+      background: transparent; border: 1px solid #E24B4A;
+      color: #A32D2D; cursor: pointer; margin-top: 8px;
+    }
+    .btn-danger:active { background: #FCEBEB; }
+
+    /* ITEM LIST */
+    .list-container { display: flex; flex-direction: column; gap: 8px; }
+    .item-card {
+      background: #fff; border: 1px solid #eee;
+      border-radius: 12px; padding: 12px;
+      display: flex; align-items: flex-start; gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .item-card.done { opacity: 0.5; }
+    .item-card.done .item-name { text-decoration: line-through; }
+    .item-card.over-budget { border-color: #E24B4A; background: #fff8f8; }
+
+    .check-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid #ddd; background: transparent;
+      cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: all 0.2s; margin-top: 2px;
+    }
+    .check-btn.checked { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 15px; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-meta { font-size: 12px; color: #888; margin-top: 2px; }
+    .item-promo { font-size: 11px; color: #1D9E75; font-weight: 600; margin-top: 3px; }
+    .item-warn { font-size: 11px; color: #A32D2D; margin-top: 2px; }
+
+    .promo-select-mini {
+      font-size: 11px; padding: 4px 6px;
+      border-radius: 6px; margin-top: 5px;
+      border: 1px solid #eee; background: #f5f5f0;
+      color: #555; width: 100%;
+    }
+
+    .item-price-area { text-align: right; flex-shrink: 0; }
+    .price-input-wrap { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+    .price-sym { font-size: 13px; color: #888; }
+    .price-in {
+      width: 80px; font-size: 14px; padding: 7px 8px;
+      border-radius: 8px; text-align: right;
+      border: 1px solid #ddd; background: #fafafa;
+    }
+    .price-in:focus { border-color: #1a1a1a; background: #fff; outline: none; }
+    .item-total { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-top: 4px; }
+    .item-strike { font-size: 11px; color: #aaa; text-decoration: line-through; margin-top: 2px; }
+    .item-discount { font-size: 11px; color: #1D9E75; font-weight: 600; }
+
+    .del-btn {
+      color: #ccc; background: transparent; border: none;
+      font-size: 18px; cursor: pointer; padding: 2px 4px;
+      flex-shrink: 0; margin-top: 2px; line-height: 1;
+    }
+    .del-btn:active { color: #E24B4A; }
+
+    /* PROMO CARDS */
+    .promo-list { display: flex; flex-direction: column; gap: 8px; }
+    .promo-card {
+      background: #fff; border: 1px solid #eee;
+      border-radius: 12px; padding: 12px 14px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .promo-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+    .promo-desc { font-size: 12px; color: #888; margin-top: 2px; }
+    .promo-badge {
+      font-size: 12px; font-weight: 600; padding: 4px 10px;
+      border-radius: 8px; background: #E1F5EE; color: #0F6E56;
+      white-space: nowrap; margin-left: 8px;
+    }
+    .promo-del { background: transparent; border: none; font-size: 18px; cursor: pointer; color: #ccc; padding: 2px 4px; }
+    .promo-del:active { color: #E24B4A; }
+
+    /* SUMMARY */
+    .summary-block {
+      background: #f5f5f0; border-radius: 12px;
+      padding: 14px; margin-top: 12px;
+    }
+    .summary-row {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 6px 0; font-size: 14px;
+    }
+    .summary-row.total {
+      border-top: 1px solid #ddd; margin-top: 6px;
+      padding-top: 12px; font-size: 18px; font-weight: 700;
+    }
+    .s-label { color: #888; }
+    .s-val { font-weight: 600; color: #1a1a1a; }
+
+    .gauge-bar { flex: 1; height: 10px; background: #eee; border-radius: 99px; overflow: hidden; }
+    .gauge-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.3s; }
+
+    .savings-banner {
+      text-align: center; margin-top: 12px;
+      font-size: 13px; color: #0F6E56;
+      background: #E1F5EE; border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .tip {
+      font-size: 12px; color: #888;
+      background: #f5f5f0; border-radius: 8px;
+      padding: 8px 12px; margin-bottom: 12px;
+    }
+
+    .empty {
+      text-align: center; padding: 3rem 1rem;
+      color: #aaa; font-size: 14px;
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+    /* BOTTOM SAFE AREA */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .content { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <h1>🛒 Lista del Super</h1>
+      <span class="save-indicator" id="save-indicator"></span>
+    </div>
+    <div class="progress-label" id="progress-label">0 de 0 productos comprados</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('lista')">Lista</div>
+    <div class="tab" onclick="showTab('promos')">Promos</div>
+    <div class="tab" onclick="showTab('resumen')">Resumen</div>
+    <div class="tab" onclick="showTab('config')">Config</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div id="alert-banner" class="alert-banner"></div>
+
+    <!-- BUDGET BAR (visible cuando hay presupuesto) -->
+    <div id="budget-bar-section" style="display:none;">
+      <div class="budget-bar-wrap">
+        <div class="budget-top">
+          <span class="budget-label">Presupuesto</span>
+          <span class="budget-amounts" id="budget-amounts">$0 / $0</span>
+        </div>
+        <div class="bar-bg"><div class="bar-fill" id="budget-bar-fill" style="width:0%;background:#1D9E75;"></div></div>
+        <div class="budget-status" id="budget-status"></div>
+      </div>
+    </div>
+
+    <!-- TAB: LISTA -->
+    <div class="section active" id="tab-lista">
+
+      <div class="card">
+        <h3>💰 Presupuesto máximo</h3>
+        <div class="form-row">
+          <input type="number" id="budget-input" placeholder="Ej: 50000" min="0" class="f2" />
+          <button class="btn-secondary" onclick="setBudget()">Fijar</button>
+          <button class="btn-secondary" onclick="clearBudget()">✕</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>➕ Agregar producto</h3>
+        <div class="form-row">
+          <input type="text" id="new-name" placeholder="Producto" class="f2" />
+          <input type="number" id="new-qty" placeholder="Cant." min="1" value="1" class="f08" />
+          <select id="new-unit" class="f1">
+            <option value="u">u.</option>
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="L">L</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <select id="new-cat" class="f1">
+            <option value="">Categoría</option>
+            <option value="Verduras y frutas">Verduras y frutas</option>
+            <option value="Lácteos">Lácteos</option>
+            <option value="Carnes">Carnes</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Limpieza">Limpieza</option>
+            <option value="Almacén">Almacén</option>
+            <option value="Fiambrería">Fiambrería</option>
+            <option value="Otros">Otros</option>
+          </select>
+          <select id="new-promo" class="f1">
+            <option value="">Sin promoción</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="addItem()">+ Agregar a la lista</button>
+      </div>
+
+      <div class="list-container" id="item-list"></div>
+    </div>
+
+    <!-- TAB: PROMOS -->
+    <div class="section" id="tab-promos">
+      <div class="tip">💡 Cargá las promos primero y después asignáselas a cada producto en la lista.</div>
+      <div class="card">
+        <h3>🏷️ Nueva promoción</h3>
+        <div style="margin-bottom:8px;">
+          <input type="text" id="promo-name" placeholder="Nombre (ej: 2x1 yogur)" />
+        </div>
+        <div class="form-row">
+          <select id="promo-type" class="f2">
+            <option value="pct">% de descuento</option>
+            <option value="2x1">2x1</option>
+            <option value="3x2">3x2</option>
+            <option value="fixed">Descuento fijo $</option>
+            <option value="2nd50">2da unidad al 50%</option>
+          </select>
+          <input type="number" id="promo-val" placeholder="Valor" min="0" class="f1" />
+        </div>
+        <button class="btn-primary" onclick="addPromo()">+ Agregar promoción</button>
+      </div>
+      <div class="promo-list" id="promo-list"></div>
+    </div>
+
+    <!-- TAB: RESUMEN -->
+    <div class="section" id="tab-resumen">
+      <div id="resumen-list"></div>
+    </div>
+
+    <!-- TAB: CONFIG -->
+    <div class="section" id="tab-config">
+      <div class="card">
+        <h3>💾 Guardado automático</h3>
+        <p id="last-saved-label">La lista se guarda automáticamente cada vez que hacés un cambio. Cerrá y volvé a abrir: todo va a seguir igual.</p>
+      </div>
+      <div class="card">
+        <h3>🛒 Nueva compra</h3>
+        <p>Borra la lista y los precios, pero mantiene las promociones guardadas. Ideal para la próxima ida al super.</p>
+        <button class="btn-danger" onclick="nuevaCompra()">Iniciar nueva compra</button>
+      </div>
+      <div class="card">
+        <h3>🔄 Resetear todo</h3>
+        <p>Borra absolutamente todo: lista, precios, promociones y presupuesto. No se puede deshacer.</p>
+        <button class="btn-danger" onclick="resetearTodo()">Borrar todo y empezar de cero</button>
+      </div>
+      <div class="card" style="text-align:center;">
+        <p style="font-size:11px;color:#bbb;">Lista del Super · v1.0<br>Guardado local en este dispositivo</p>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end app -->
+
+<script>
+const STORAGE_KEY = 'superapp_data_v1';
+let items = [], promos = [], budget = null;
+let idCounter = 1, promoCounter = 1;
+let saveTimer = null;
+
+/* ======== PERSISTENCIA ======== */
+function saveData() {
+  const data = { items, promos, budget, idCounter, promoCounter };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    showSaveIndicator();
+  } catch(e) { console.warn('No se pudo guardar:', e); }
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    items = data.items || [];
+    promos = data.promos || [];
+    budget = data.budget !== undefined ? data.budget : null;
+    idCounter = data.idCounter || items.length + 1;
+    promoCounter = data.promoCounter || promos.length + 1;
+    if (budget !== null) {
+      document.getElementById('budget-input').value = budget;
+      document.getElementById('budget-bar-section').style.display = 'block';
+    }
+    updateLastSavedLabel();
+  } catch(e) { console.warn('Error al cargar datos:', e); }
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveData, 500);
+}
+
+function showSaveIndicator() {
+  const el = document.getElementById('save-indicator');
+  el.textContent = '✓ Guardado';
+  el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; }, 2500);
+  updateLastSavedLabel();
+}
+
+function updateLastSavedLabel() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const el = document.getElementById('last-saved-label');
+  if (el) el.textContent = `La lista se guarda automáticamente. Último guardado: ${h}:${m}`;
+}
+
+function nuevaCompra() {
+  if (!confirm('¿Iniciás una nueva compra? Se borra la lista actual pero se mantienen las promos.')) return;
+  items = []; idCounter = 1; budget = null;
+  document.getElementById('budget-input').value = '';
+  document.getElementById('budget-bar-section').style.display = 'none';
+  document.getElementById('alert-banner').className = 'alert-banner';
+  saveData(); renderItems(); showTab('lista');
+}
+
+function resetearTodo() {
+  if (!confirm('¿Seguro? Se borra todo: lista, promos y presupuesto. No se puede deshacer.')) return;
+  items = []; promos = []; budget = null; idCounter = 1; promoCounter = 1;
+  document.getElementById('budget-input').value = '';
+  document.getElementById('budget-bar-section').style.display = 'none';
+  document.getElementById('alert-banner').className = 'alert-banner';
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  renderItems(); renderPromos(); refreshAllPromoSelects(); showTab('lista');
+}
+
+/* ======== HELPERS ======== */
+function fmt(n) {
+  return parseFloat(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function getPromo(id) { return promos.find(p => p.id === id) || null; }
+
+function calcItemTotal(item) {
+  const p = parseFloat(item.price);
+  if (isNaN(p) || p <= 0) return { subtotal: 0, discount: 0, total: 0 };
+  let subtotal = p * item.qty, discount = 0;
+  const promo = getPromo(item.promoId);
+  if (promo) {
+    if (promo.type === 'pct')    discount = subtotal * promo.val / 100;
+    else if (promo.type === '2x1')   discount = Math.floor(item.qty / 2) * p;
+    else if (promo.type === '3x2')   discount = Math.floor(item.qty / 3) * p;
+    else if (promo.type === 'fixed') discount = Math.min(promo.val, subtotal);
+    else if (promo.type === '2nd50') discount = Math.floor(item.qty / 2) * p * 0.5;
+  }
+  discount = parseFloat(discount.toFixed(2));
+  return { subtotal, discount, total: parseFloat((subtotal - discount).toFixed(2)) };
+}
+
+function promoLabel(p) {
+  if (!p) return '';
+  if (p.type === 'pct')    return `-${p.val}%`;
+  if (p.type === '2x1')   return '2x1';
+  if (p.type === '3x2')   return '3x2';
+  if (p.type === 'fixed') return `-$${p.val}`;
+  if (p.type === '2nd50') return '2da al 50%';
+  return '';
+}
+function promoDesc(p) {
+  if (!p) return '';
+  if (p.type === 'pct')    return `${p.val}% de descuento`;
+  if (p.type === '2x1')   return 'Llevás 2, pagás 1';
+  if (p.type === '3x2')   return 'Llevás 3, pagás 2';
+  if (p.type === 'fixed') return `Descuento fijo de $${p.val}`;
+  if (p.type === '2nd50') return '2da unidad al 50%';
+  return '';
+}
+
+function buildPromoOptions(selectedId) {
+  let opts = '<option value="">Sin promoción</option>';
+  promos.forEach(p => {
+    opts += `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.name} (${promoLabel(p)})</option>`;
+  });
+  return opts;
+}
+
+function refreshAllPromoSelects() {
+  const sel = document.getElementById('new-promo');
+  const cur = parseInt(sel.value) || null;
+  sel.innerHTML = buildPromoOptions(cur);
+  items.forEach(item => {
+    const el = document.getElementById('promo-sel-' + item.id);
+    if (el) el.innerHTML = buildPromoOptions(item.promoId);
+  });
+}
+
+/* ======== PRESUPUESTO ======== */
+function getTotalFinal() { return items.reduce((acc, item) => acc + calcItemTotal(item).total, 0); }
+
+function setBudget() {
+  const v = parseFloat(document.getElementById('budget-input').value);
+  if (isNaN(v) || v <= 0) { alert('Ingresá un monto válido'); return; }
+  budget = v;
+  document.getElementById('budget-bar-section').style.display = 'block';
+  scheduleSave(); updateBudgetBar(); renderItems();
+}
+function clearBudget() {
+  budget = null;
+  document.getElementById('budget-input').value = '';
+  document.getElementById('budget-bar-section').style.display = 'none';
+  document.getElementById('alert-banner').className = 'alert-banner';
+  scheduleSave(); renderItems();
+}
+
+function updateBudgetBar() {
+  if (budget === null) return;
+  const total = getTotalFinal();
+  const pct = Math.min((total / budget) * 100, 100);
+  const leftover = budget - total;
+  const fill = document.getElementById('budget-bar-fill');
+  const banner = document.getElementById('alert-banner');
+  document.getElementById('budget-amounts').textContent = `$${fmt(total)} / $${fmt(budget)}`;
+
+  if (total === 0) {
+    fill.style.width = '0%'; fill.style.background = '#1D9E75';
+    document.getElementById('budget-status').textContent = `Disponible: $${fmt(budget)}`;
+    document.getElementById('budget-status').style.color = '#888';
+    banner.className = 'alert-banner';
+  } else if (total <= budget * 0.85) {
+    fill.style.width = pct.toFixed(1) + '%'; fill.style.background = '#1D9E75';
+    document.getElementById('budget-status').textContent = `Te sobran $${fmt(leftover)} (${(100 - pct).toFixed(0)}%)`;
+    document.getElementById('budget-status').style.color = '#0F6E56';
+    banner.className = 'alert-banner alert-ok';
+    banner.textContent = `Vas bien! Usaste el ${pct.toFixed(0)}% del presupuesto. Te quedan $${fmt(leftover)}.`;
+  } else if (total <= budget) {
+    fill.style.width = pct.toFixed(1) + '%'; fill.style.background = '#EF9F27';
+    document.getElementById('budget-status').textContent = `Queda poco: $${fmt(leftover)}`;
+    document.getElementById('budget-status').style.color = '#854F0B';
+    banner.className = 'alert-banner alert-warn';
+    banner.textContent = `Atención: estás cerca del límite. Solo te quedan $${fmt(leftover)}.`;
+  } else {
+    fill.style.width = '100%'; fill.style.background = '#E24B4A';
+    document.getElementById('budget-status').textContent = `Te pasaste $${fmt(-leftover)}`;
+    document.getElementById('budget-status').style.color = '#A32D2D';
+    banner.className = 'alert-banner alert-over';
+    banner.textContent = `Te pasaste del presupuesto por $${fmt(-leftover)}. Revisá tu lista.`;
+  }
+}
+
+/* ======== ITEMS ======== */
+function addItem() {
+  const name = document.getElementById('new-name').value.trim();
+  const qty = parseFloat(document.getElementById('new-qty').value) || 1;
+  const unit = document.getElementById('new-unit').value;
+  const cat = document.getElementById('new-cat').value;
+  const promoId = parseInt(document.getElementById('new-promo').value) || null;
+  if (!name) { alert('Ingresá el nombre del producto'); return; }
+  items.push({ id: idCounter++, name, qty, unit, cat, promoId, price: '', done: false });
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-qty').value = '1';
+  document.getElementById('new-promo').value = '';
+  scheduleSave(); renderItems();
+  document.getElementById('new-name').focus();
+}
+
+function toggleDone(id) {
+  const item = items.find(i => i.id === id);
+  if (item) item.done = !item.done;
+  scheduleSave(); renderItems();
+}
+function setPrice(id, val) {
+  const item = items.find(i => i.id === id);
+  if (item) { item.price = val; scheduleSave(); renderItems(); }
+}
+function setItemPromo(id, val) {
+  const item = items.find(i => i.id === id);
+  if (item) { item.promoId = parseInt(val) || null; scheduleSave(); renderItems(); }
+}
+function deleteItem(id) {
+  if (!confirm('¿Eliminás este producto?')) return;
+  items = items.filter(i => i.id !== id);
+  scheduleSave(); renderItems();
+}
+
+function renderItems() {
+  const el = document.getElementById('item-list');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🛒</div>Tu lista está vacía.<br>Agregá productos arriba.</div>';
+    updateProgress(); updateBudgetBar(); return;
+  }
+  let acc = 0;
+  el.innerHTML = items.map(item => {
+    const { subtotal, discount, total } = calcItemTotal(item);
+    acc += total;
+    const isOver = budget !== null && acc > budget && total > 0;
+    const promo = getPromo(item.promoId);
+    return `<div class="item-card ${item.done ? 'done' : ''} ${isOver ? 'over-budget' : ''}">
+      <button class="check-btn ${item.done ? 'checked' : ''}" onclick="toggleDone(${item.id})">${item.done ? '✓' : ''}</button>
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        <div class="item-meta">${item.qty} ${item.unit}${item.cat ? ' · ' + item.cat : ''}</div>
+        <select class="promo-select-mini" id="promo-sel-${item.id}" onchange="setItemPromo(${item.id}, this.value)">
+          ${buildPromoOptions(item.promoId)}
+        </select>
+        ${promo ? `<div class="item-promo">🏷️ ${promo.name} · ${promoLabel(promo)}</div>` : ''}
+        ${isOver ? `<div class="item-warn">⚠️ Supera el presupuesto</div>` : ''}
+      </div>
+      <div class="item-price-area">
+        <div class="price-input-wrap">
+          <span class="price-sym">$</span>
+          <input type="number" class="price-in" min="0" placeholder="precio" value="${item.price}" onchange="setPrice(${item.id}, this.value)" inputmode="decimal" />
+        </div>
+        ${discount > 0 ? `<div class="item-strike">$${fmt(subtotal)}</div>` : ''}
+        ${total > 0 ? `<div class="item-total">$${fmt(total)}</div>` : ''}
+        ${discount > 0 ? `<div class="item-discount">-$${fmt(discount)}</div>` : ''}
+      </div>
+      <button class="del-btn" onclick="deleteItem(${item.id})">×</button>
+    </div>`;
+  }).join('');
+  updateProgress(); updateBudgetBar();
+}
+
+function updateProgress() {
+  const total = items.length, done = items.filter(i => i.done).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('progress-label').textContent =
+    `${done} de ${total} producto${total !== 1 ? 's' : ''} comprado${done !== 1 ? 's' : ''}`;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+/* ======== PROMOS ======== */
+function addPromo() {
+  const name = document.getElementById('promo-name').value.trim();
+  const type = document.getElementById('promo-type').value;
+  const val = parseFloat(document.getElementById('promo-val').value) || 0;
+  if (!name) { alert('Ingresá un nombre para la promo'); return; }
+  promos.push({ id: promoCounter++, name, type, val });
+  document.getElementById('promo-name').value = '';
+  document.getElementById('promo-val').value = '';
+  scheduleSave(); renderPromos(); refreshAllPromoSelects();
+}
+
+function deletePromo(id) {
+  if (!confirm('¿Eliminás esta promoción?')) return;
+  promos = promos.filter(p => p.id !== id);
+  items.forEach(item => { if (item.promoId === id) item.promoId = null; });
+  scheduleSave(); renderPromos(); refreshAllPromoSelects(); renderItems();
+}
+
+function renderPromos() {
+  const el = document.getElementById('promo-list');
+  if (!promos.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏷️</div>No hay promociones cargadas todavía</div>';
+    return;
+  }
+  el.innerHTML = promos.map(p => `
+    <div class="promo-card">
+      <div style="flex:1;min-width:0;">
+        <div class="promo-name">${p.name}</div>
+        <div class="promo-desc">${promoDesc(p)}</div>
+      </div>
+      <span class="promo-badge">${promoLabel(p)}</span>
+      <button class="promo-del" onclick="deletePromo(${p.id})">×</button>
+    </div>`).join('');
+}
+
+/* ======== RESUMEN ======== */
+function showTab(tab) {
+  const tabs = ['lista', 'promos', 'resumen', 'config'];
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', 'tab-' + tabs[i] === 'tab-' + tab));
+  if (tab === 'resumen') renderResumen();
+}
+
+function renderResumen() {
+  const el = document.getElementById('resumen-list');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No hay productos en la lista aún.</div>';
+    return;
+  }
+  let totalBruto = 0, totalDescuento = 0, totalFinal = 0, catMap = {}, promoMap = {};
+  items.forEach(item => {
+    const { subtotal, discount, total } = calcItemTotal(item);
+    totalBruto += subtotal; totalDescuento += discount; totalFinal += total;
+    if (item.cat && total > 0) catMap[item.cat] = (catMap[item.cat] || 0) + total;
+    if (discount > 0 && item.promoId) {
+      const p = getPromo(item.promoId);
+      if (p) promoMap[p.name] = (promoMap[p.name] || 0) + discount;
+    }
+  });
+  const done = items.filter(i => i.done), pending = items.filter(i => !i.done);
+  const doneCost = done.reduce((a, i) => a + calcItemTotal(i).total, 0);
+  const pendCost = pending.reduce((a, i) => a + calcItemTotal(i).total, 0);
+
+  let budgetHTML = '';
+  if (budget !== null) {
+    const leftover = budget - totalFinal;
+    const pct = Math.min((totalFinal / budget) * 100, 100);
+    const color = totalFinal > budget ? '#E24B4A' : totalFinal > budget * 0.85 ? '#EF9F27' : '#1D9E75';
+    const msg = totalFinal > budget ? `Te pasaste $${fmt(-leftover)}` : `Te sobran $${fmt(leftover)}`;
+    budgetHTML = `<div class="card">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+        <span style="color:#888;">$${fmt(totalFinal)} de $${fmt(budget)}</span>
+        <span style="font-weight:700;color:${color};">${msg}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="gauge-bar"><div class="gauge-fill" style="width:${pct.toFixed(1)}%;background:${color};"></div></div>
+        <span style="font-size:15px;font-weight:700;color:${color};min-width:40px;text-align:right;">${pct.toFixed(0)}%</span>
+      </div>
+    </div>`;
+  }
+
+  let catHTML = Object.keys(catMap).length
+    ? '<div style="margin-top:10px;"><div style="font-size:12px;font-weight:600;color:#888;margin-bottom:6px;">Por categoría</div>' +
+      Object.entries(catMap).map(([cat, val]) =>
+        `<div class="summary-row"><span class="s-label">${cat}</span><span class="s-val">$${fmt(val)}</span></div>`
+      ).join('') + '</div>'
+    : '';
+
+  let promoHTML = Object.keys(promoMap).length
+    ? '<div style="margin-top:10px;"><div style="font-size:12px;font-weight:600;color:#0F6E56;margin-bottom:6px;">Ahorro por promo</div>' +
+      Object.entries(promoMap).map(([name, val]) =>
+        `<div class="summary-row"><span style="color:#0F6E56;">${name}</span><span style="color:#0F6E56;font-weight:600;">-$${fmt(val)}</span></div>`
+      ).join('') + '</div>'
+    : '';
+
+  el.innerHTML = `
+    ${budgetHTML}
+    <div class="summary-block">
+      <div class="summary-row"><span class="s-label">Subtotal sin descuentos</span><span class="s-val">$${fmt(totalBruto)}</span></div>
+      ${totalDescuento > 0 ? `<div class="summary-row" style="color:#1D9E75;"><span>Descuentos totales</span><span>-$${fmt(totalDescuento)}</span></div>` : ''}
+      <div class="summary-row total"><span>Total estimado</span><span>$${fmt(totalFinal)}</span></div>
+      ${catHTML}${promoHTML}
+    </div>
+    <div class="summary-block" style="margin-top:12px;">
+      <div class="summary-row"><span class="s-label">En el changuito (${done.length})</span><span style="font-weight:600;color:#1D9E75;">$${fmt(doneCost)}</span></div>
+      <div class="summary-row"><span class="s-label">Pendientes (${pending.length})</span><span class="s-val">$${fmt(pendCost)}</span></div>
+    </div>
+    ${totalDescuento > 0 ? `<div class="savings-banner">Ahorrás <strong>$${fmt(totalDescuento)}</strong> con las promociones 🎉</div>` : ''}
+  `;
+}
+
+/* ======== INIT ======== */
+loadData();
+renderItems();
+renderPromos();
+refreshAllPromoSelects();
+</script>
+</body>
+</html>
